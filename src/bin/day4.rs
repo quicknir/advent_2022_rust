@@ -28,7 +28,7 @@ fn parse_line(line: &str) -> Result<(Assignment, Assignment)> {
     let mut assignments = line.split(',');
     let first_assignment = assignments.next().ok_or_err()?;
     let second_assignment = assignments.next().ok_or_err()?;
-    check(assignments.next() == None, || {
+    check(assignments.next().is_none(), || {
         InputError::new("More than one comma on line!")
     })?;
     Ok((
