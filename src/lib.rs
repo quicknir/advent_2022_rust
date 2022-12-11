@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut, Add, Sub};
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 
@@ -202,6 +202,29 @@ impl<T> OptionUtils for Option<T> {
             Some(e) => Ok(e),
             None => Err(OptionEmptyError {}),
         }
+    }
+}
+
+#[derive(Debug, Default, Hash, PartialEq, Eq, Clone, Copy)]
+pub struct Coord {
+    pub i: i64,
+    pub j: i64,
+}
+
+
+impl Add<Coord> for Coord {
+    type Output = Coord;
+
+    fn add(self, rhs: Coord) -> Self::Output {
+        Coord {i: self.i + rhs.i, j: self.j + rhs.j}
+    }
+}
+
+impl Sub<Coord> for Coord {
+    type Output = Coord;
+
+    fn sub(self, rhs: Coord) -> Self::Output {
+        Coord {i: self.i - rhs.i, j: self.j - rhs.j}
     }
 }
 
