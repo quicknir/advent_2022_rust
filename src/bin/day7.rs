@@ -111,7 +111,7 @@ mod tests {
     use crate::part1;
     use crate::part2;
     #[test]
-    fn dayn_test() {
+    fn day7_test() {
         let input = vec![
             "$ cd /",
             "$ ls",
