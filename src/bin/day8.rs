@@ -1,4 +1,4 @@
-use advent_2022::{read_aoc_lines, Grid, InputIterator, OptionEmptyError, OptionUtils};
+use advent_2022::{read_aoc_lines, Coord, Grid, InputIterator, OptionEmptyError, OptionUtils};
 use anyhow::Result;
 
 fn parse_trees<I: InputIterator>(mut input: I) -> Result<Grid<i8>> {
@@ -47,16 +47,16 @@ fn part1<I: InputIterator>(input: I) -> Result<i64> {
     Ok(seen.iter().filter(|x| **x).count() as i64)
 }
 
-fn find_scenic(trees: &Grid<i8>, start: (i64, i64), dir: (i64, i64)) -> i64 {
-    let mut cur = (start.0 + dir.0, start.1 + dir.1);
+fn find_scenic(trees: &Grid<i8>, start: Coord, dir: Coord) -> i64 {
+    let mut cur = start + dir;
     let mut scenic = 0;
     let start_height = trees[start];
-    while let Some(tree_height) = trees.get(cur.0, cur.1) {
+    while let Some(tree_height) = trees.get(cur) {
         scenic += 1;
         if *tree_height >= start_height {
             break;
         }
-        cur = (cur.0 + dir.0, cur.1 + dir.1);
+        cur = cur + dir;
     }
     scenic
 }
@@ -65,12 +65,12 @@ fn part2<I: InputIterator>(input: I) -> Result<i64> {
     let trees = parse_trees(input)?;
 
     let max = (0..trees.height())
-        .flat_map(|i| (0..trees.width()).map(move |j| (i, j)))
+        .flat_map(|i| (0..trees.width()).map(move |j| Coord { i, j }))
         .map(|p| {
-            find_scenic(&trees, p, (1, 0))
-                * find_scenic(&trees, p, (-1, 0))
-                * find_scenic(&trees, p, (0, 1))
-                * find_scenic(&trees, p, (0, -1))
+            find_scenic(&trees, p, (1, 0).into())
+                * find_scenic(&trees, p, (-1, 0).into())
+                * find_scenic(&trees, p, (0, 1).into())
+                * find_scenic(&trees, p, (0, -1).into())
         })
         .max();
     Ok(max.ok_or_err()?)

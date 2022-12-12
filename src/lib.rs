@@ -1,9 +1,11 @@
 use anyhow::Result;
 use std::error::Error;
+use std::fmt::Display;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::ops::{Index, IndexMut, Add, Sub};
 use std::path::{Path, PathBuf};
+use std::fmt::Debug;
 use thiserror::Error;
 
 pub fn read_lines<P: AsRef<Path>>(filename: P) -> impl Iterator<Item = String> {
@@ -228,11 +230,26 @@ impl Sub<Coord> for Coord {
     }
 }
 
+impl From<(i64, i64)> for Coord {
+    fn from(value: (i64, i64)) -> Self {
+        Coord{i: value.0, j: value.1}
+    }
+}
+
 #[derive(Debug)]
 pub struct Grid<T> {
     height: i64,
     width: i64,
     data: Vec<T>,
+}
+
+impl<T: Debug> Display for Grid<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for i in 0..self.height {
+            write!(f, "{:?}\n", &self.data[((i*self.width) as usize)..(((i+1)*self.width) as usize)])?;
+        }
+        Ok(())
+    }
 }
 
 impl<T: Clone> Grid<T> {
@@ -255,24 +272,27 @@ impl<T> Grid<T> {
         }
     }
 
-    fn con_ind(&self, i: i64, j: i64) -> usize { (i * self.width + j) as usize }
+    fn con_ind(&self, c: Coord) -> usize { (c.i * self.width + c.j) as usize }
 
-    pub fn contains_coord(&self, i: i64, j: i64) -> bool {
-        (0..self.height).contains(&i) && (0..self.width).contains(&j)
+    pub fn contains_coord<C: Into<Coord>>(&self, c: C) -> bool {
+        let c = c.into();
+        (0..self.height).contains(&c.i) && (0..self.width).contains(&c.j)
     }
 
-    pub fn get(&self, i: i64, j: i64) -> Option<&T> {
-        if !self.contains_coord(i, j) {
+    pub fn get<C: Into<Coord>>(&self, c: C) -> Option<&T> {
+        let c = c.into();
+        if !self.contains_coord(c) {
             None
         } else {
-            Some(&self.data[self.con_ind(i, j)])
+            Some(&self.data[self.con_ind(c)])
         }
     }
-    pub fn get_mut(&mut self, i: i64, j: i64) -> Option<&mut T> {
-        if !self.contains_coord(i, j) {
+    pub fn get_mut<C: Into<Coord>>(&mut self, c: C) -> Option<&mut T> {
+        let c = c.into();
+        if !self.contains_coord(c) {
             None
         } else {
-            let i = self.con_ind(i, j);
+            let i = self.con_ind(c);
             Some(&mut self.data[i])
         }
     }
@@ -283,17 +303,18 @@ impl<T> Grid<T> {
     pub fn width(&self) -> i64 { self.width }
 }
 
-impl<T> Index<(i64, i64)> for Grid<T> {
+impl<T, C: Into<Coord>> Index<C> for Grid<T> {
     type Output = T;
 
-    fn index(&self, index: (i64, i64)) -> &T {
-        &self.data[self.con_ind(index.0, index.1)]
+    fn index(&self, index: C) -> &T {
+        &self.data[self.con_ind(index.into())]
     }
 
 }
-impl<T> IndexMut<(i64, i64)> for Grid<T> {
-    fn index_mut(&mut self, index: (i64, i64)) -> &mut T {
-        &mut self.data[(index.0*self.width+ index.1) as usize]
+impl<T, C: Into<Coord>> IndexMut<C> for Grid<T> {
+    fn index_mut(&mut self, index: C) -> &mut T {
+        let i = self.con_ind(index.into());
+        &mut self.data[i]
     }
 
 }
