@@ -299,6 +299,9 @@ impl<T> Grid<T> {
     pub fn iter(&self) -> impl Iterator<Item = &T> + '_ {
         self.data.iter()
     }
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> + '_ {
+        self.data.iter_mut()
+    }
     pub fn height(&self) -> i64 { self.height }
     pub fn width(&self) -> i64 { self.width }
 }
@@ -309,7 +312,6 @@ impl<T, C: Into<Coord>> Index<C> for Grid<T> {
     fn index(&self, index: C) -> &T {
         &self.data[self.con_ind(index.into())]
     }
-
 }
 impl<T, C: Into<Coord>> IndexMut<C> for Grid<T> {
     fn index_mut(&mut self, index: C) -> &mut T {

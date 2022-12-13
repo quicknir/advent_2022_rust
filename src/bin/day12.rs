@@ -3,7 +3,7 @@ use std::mem::swap;
 use advent_2022::{check, read_aoc_lines, Coord, Grid, InputError, InputIterator, OptionUtils};
 use anyhow::Result;
 
-fn parse_file<I: InputIterator>(input: I) -> Result<(Grid<char>, Coord, Coord)> {
+fn parse_file<I: InputIterator>(input: I) -> Result<(Grid<char>, Coord)> {
     let mut heights = vec![];
     let mut width = 0;
     let mut height = 0;
@@ -18,27 +18,24 @@ fn parse_file<I: InputIterator>(input: I) -> Result<(Grid<char>, Coord, Coord)> 
         InputError::new("Error, height * width doesn't match data quantity!")
     })?;
 
-    let mut find = |c: char, r: char| -> Result<Coord>{
-        let index = heights
-            .iter()
-            .enumerate()
-            .find(|x| *x.1 == c)
-            .ok_or_err()?
-            .0;
-        heights[index] = r;
-        Ok(Coord {
-            i: index as i64 / width,
-            j: index as i64 % width,
-        })
+    let end_index = heights
+        .iter()
+        .enumerate()
+        .find(|x| *x.1 == 'E')
+        .ok_or_err()?
+        .0;
+
+    heights[end_index] = 'z';
+
+    let end = Coord {
+        i: end_index as i64 / width,
+        j: end_index as i64 % width,
     };
 
-    let start = find('S', 'a')?;
-    let end = find('E', 'z')?;
-
-    Ok((Grid::from_data(height, width, heights), start, end))
+    Ok((Grid::from_data(height, width, heights), end))
 }
 
-fn do_it(heights: &Grid<char>, end: Coord) -> Grid<i64> {
+fn do_it(heights: &Grid<char>, end: Coord) -> Result<i64> {
     let mut steps = Grid::new(heights.height(), heights.width(), i64::MAX);
     steps[end] = 0;
     let mut cur_points = vec![end];
@@ -56,13 +53,17 @@ fn do_it(heights: &Grid<char>, end: Coord) -> Grid<i64> {
     while !cur_points.is_empty() {
         cur_distance += 1;
         for p in &cur_points {
-            let cur_height = heights[*p];
+            let cur_height = heights[*p] as i32;
             for dir in &step_dirs {
                 let cur_coord = *p + *dir;
                 if !heights.contains_coord(cur_coord) {
                     continue;
                 }
-                if cur_height as i32 - heights[(cur_coord.i, cur_coord.j)] as i32 > 1 {
+                let next_height = heights[cur_coord];
+                if next_height == 'S' && cur_height - 'a' as i32 <= 1 {
+                    return Ok(cur_distance);
+                }
+                if cur_height - next_height as i32 > 1 {
                     continue;
                 }
                 let cur_step = &mut steps[(cur_coord.i, cur_coord.j)];
@@ -76,24 +77,22 @@ fn do_it(heights: &Grid<char>, end: Coord) -> Grid<i64> {
         cur_points.clear();
         swap(&mut cur_points, &mut next_points)
     }
-    steps
+    Err(InputError::new("uh oh").into())
 }
 
 fn part1<I: InputIterator>(input: I) -> Result<i64> {
-    let (heights, start, end) = parse_file(input)?;
-    let steps = do_it(&heights, end);
-    Ok(steps[start])
+    let (heights, end) = parse_file(input)?;
+    do_it(&heights, end)
 }
 
 fn part2<I: InputIterator>(input: I) -> Result<i64> {
-    let (heights, _, end) = parse_file(input)?;
-    let steps = do_it(&heights, end);
-    Ok((0..heights.height())
-        .flat_map(|i| (0..heights.width()).map(move |j| (i, j)))
-        .filter(|p| heights[*p] == 'a')
-        .map(|p| steps[p])
-        .min()
-        .unwrap())
+    let (mut heights, end) = parse_file(input)?;
+    for h in heights.iter_mut() {
+        if *h == 'a' {
+            *h = 'S';
+        }
+    }
+    do_it(&heights, end)
 }
 
 #[cfg(test)]
