@@ -1,4 +1,4 @@
-use advent_2022::{read_aoc_lines, Grid, InputIterator, OptionUtils};
+use advent_2022::{read_aoc_lines, Grid, InputIterator, OptionUtils, show_bool_grid};
 use anyhow::Result;
 
 enum Instruction {
@@ -51,23 +51,6 @@ fn part1<I: InputIterator>(input: I) -> Result<i64> {
     Ok(signal_strength_sum)
 }
 
-fn show_grid(grid: &Grid<bool>) -> Vec<String> {
-    assert!(grid.width() == 40 && grid.height() == 6);
-    let mut result = vec![];
-    for i in 0..6 {
-        let mut s = String::new();
-        for j in 0..40 {
-            if grid[(i, j)] {
-                s.push('#');
-            } else {
-                s.push('.');
-            }
-        }
-        result.push(s);
-    }
-    result
-}
-
 fn draw_pixel(grid: &mut Grid<bool>, sprite: i64, cycles: i64) {
     let j = cycles % 40;
     let i = (cycles / 40) % 6;
@@ -97,7 +80,7 @@ fn part2<I: InputIterator>(input: I) -> Result<Vec<String>> {
         };
     }
 
-    Ok(show_grid(&crt))
+    Ok(show_bool_grid(&crt))
 }
 
 #[cfg(test)]

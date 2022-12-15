@@ -320,3 +320,19 @@ impl<T, C: Into<Coord>> IndexMut<C> for Grid<T> {
     }
 
 }
+
+pub fn show_bool_grid(grid: &Grid<bool>) -> Vec<String> {
+    let mut result = vec![];
+    for i in 0..grid.height() {
+        let mut s = String::new();
+        for j in 0..grid.width() {
+            if grid[(i, j)] {
+                s.push('#');
+            } else {
+                s.push('.');
+            }
+        }
+        result.push(s);
+    }
+    result
+}
