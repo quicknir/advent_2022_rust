@@ -1,10 +1,10 @@
 use std::{
     cmp::{max, min},
-    collections::{HashSet, VecDeque},
-    ops::{Add, Range, RangeInclusive, Sub},
+    collections::{HashSet},
+    ops::{Add, RangeInclusive},
 };
 
-use advent_2022::{read_aoc_lines, Coord, InputIterator};
+use advent_2022::{read_aoc_lines, InputIterator};
 use anyhow::Result;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
